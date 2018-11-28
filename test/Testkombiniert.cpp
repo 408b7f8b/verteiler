@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
 
 		std::string str = "Hallo " + std::to_string(i);
 
-		verteiler::lieferant::Senden(s, str, 10, 1000);
+		verteiler::lieferant::Senden(s, "thema", "nachricht");
 	}
 
 	verteiler::kunde::Beenden(cl);

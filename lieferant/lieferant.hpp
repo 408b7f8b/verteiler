@@ -13,6 +13,8 @@
 
 #include "../allg/standardlogg.hpp"
 
+#define nachr_s 300
+
 namespace verteiler {
 
 	class lieferant {
@@ -27,7 +29,12 @@ namespace verteiler {
 		bool aktiv;
 
 		std::mutex mut;
-		std::string ausgehend;
+		std::string zusenden_thema;
+		std::string zusenden_nachricht;
+
+		std::vector<std::string> themen;
+		std::map<std::string, std::vector<ASecureSocket::SSLSocket*>> themaKunden;
+		bool zusenden;
 
 		lieferant(std::string CertFile_, std::string KeyFile_, std::string Port_ = "8080");
 
@@ -39,7 +46,7 @@ namespace verteiler {
 
 		static void* Listen(void* s);
 
-		static bool Senden(lieferant* s, std::string& str, unsigned int versuche = 10, unsigned int pause = 1000);
+		static bool Senden(lieferant* s, std::string thema, std::string nachricht);
 	};
 
 }

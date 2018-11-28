@@ -3,6 +3,7 @@
 //
 
 #include "lieferant.hpp"
+#include "../allg/string_add.hpp"
 
 using namespace verteiler;
 
@@ -13,7 +14,7 @@ lieferant::lieferant(std::string CertFile_, std::string KeyFile_, std::string Po
 }
 
 lieferant::~lieferant() {
-	if(aktiv){
+	if (aktiv) {
 		lieferant::Beenden(this);
 	}
 }
@@ -35,17 +36,16 @@ void lieferant::Beenden(lieferant* s) {
 	pthread_join(s->thread, NULL);
 }
 
-bool lieferant::Senden(lieferant* s, std::string& str, unsigned int versuche, unsigned int pause) {
+bool lieferant::Senden(verteiler::lieferant* s, std::string thema, std::string nachricht) {
 	bool ret = false;
 
 	s->mut.lock();
-	for (int i = 0; i < versuche; ++i) {
-		if (s->ausgehend.empty()) {
-			s->ausgehend = str;
-			ret = true;
-			break;
-		}
-		usleep(pause);
+	while (s->zusenden = true) {}
+	if (s->themaKunden.count(thema)) {
+		s->zusenden_thema = thema;
+		s->zusenden_nachricht = nachricht;
+		s->zusenden = true;
+		ret = true;
 	}
 	s->mut.unlock();
 
@@ -57,10 +57,11 @@ void* lieferant::Listen(void* s) {
 
 	CTCPSSLServer* SecureTCPSSLServer;
 
-	if(lieferant->logg_aktiv){
+	if (lieferant->logg_aktiv) {
 		SecureTCPSSLServer = new CTCPSSLServer(lieferant->Logg, lieferant->Port);
-	}else{
-		SecureTCPSSLServer = new CTCPSSLServer(lieferant->Logg, lieferant->Port, ASecureSocket::OpenSSLProtocol::TLS, ASocket::SettingsFlag::NO_FLAGS);
+	} else {
+		SecureTCPSSLServer = new CTCPSSLServer(lieferant->Logg, lieferant->Port, ASecureSocket::OpenSSLProtocol::TLS,
+											   ASocket::SettingsFlag::NO_FLAGS);
 	}
 
 	SecureTCPSSLServer->SetSSLCertFile(lieferant->CertFile);
@@ -72,26 +73,37 @@ void* lieferant::Listen(void* s) {
 
 	ASecureSocket::SSLSocket* letzterClient = new ASecureSocket::SSLSocket();
 
+	SecureTCPSSLServer->SetRcvTimeout(*letzterClient, 10);
+	SecureTCPSSLServer->SetSndTimeout(*letzterClient, 10);
+
 	while (lieferant->aktiv) {
 		if (SecureTCPSSLServer->Listen(*letzterClient, 1000)) {
 			clients.insert({i++, letzterClient});
-			struct timeval t;
-
-			t.tv_sec = 1;
-			t.tv_usec = 0;
-
-			SecureTCPSSLServer->SetRcvTimeout(*letzterClient, t);
+			SecureTCPSSLServer->SetRcvTimeout(*letzterClient, 10);
+			SecureTCPSSLServer->SetSndTimeout(*letzterClient, 10);
 			letzterClient = new ASecureSocket::SSLSocket();
 		}
 
 		lieferant->mut.lock();
-		if (!lieferant->ausgehend.empty()) {
-			for (auto& c : clients) {
-				SecureTCPSSLServer->Send(*c.second, lieferant->ausgehend);
+		if (lieferant->zusenden) {
+			for(auto& k : lieferant->themaKunden.at(lieferant->zusenden_thema)){
+				SecureTCPSSLServer->Send(*k, lieferant->zusenden_nachricht);
 			}
-			lieferant->ausgehend.clear();
+			lieferant->zusenden = false;
 		}
 		lieferant->mut.unlock();
+
+		for(auto& c : clients){
+			char r[nachr_s] = {0};
+			int res = SecureTCPSSLServer->Receive(*c.second, &(r[0]), nachr_s);
+			if(res > 0){
+				std::string na = std::string(r);
+				if(na.substr(0, 3) == "ANM"){
+					std::string gek = na.substr(3);
+					std::vector<std::string> zerl = string_split(na, {'a', 'b'});
+				}
+			}
+		}
 	}
 
 	delete (letzterClient);

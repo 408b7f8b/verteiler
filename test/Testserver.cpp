@@ -14,11 +14,7 @@ int main(int argc, char **argv) {
 	for(int i = 0; i < 20; ++i){
 		sleep(1);
 
-		s->mut.lock();
-		if(s->ausgehend.empty()){
-			s->ausgehend = std::string("hurra " + i);
-		}
-		s->mut.unlock();
+		verteiler::lieferant::Senden(s, "thema", "nachricht");
 	}
 
 	s->Beenden(s);
