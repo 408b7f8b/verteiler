@@ -19,6 +19,20 @@ void kunde::Start(kunde* c) {
 	pthread_create(&(c->thread), NULL, kunde::Betrieb, c);
 }
 
+void kunde::Anmelden(kunde* c, std::string thema) {
+	c->nachrA.setze("REG:" + thema);
+}
+
+void kunde::Anmelden(kunde* c, std::vector<std::string> themen) {
+	std::string agr;
+
+	for(auto& s : themen){
+		agr += s + ";";
+	}
+
+	kunde::Anmelden(c, agr);
+}
+
 void* kunde::Betrieb(void* c) {
 	kunde* cl = (kunde*) c;
 
@@ -34,29 +48,30 @@ void* kunde::Betrieb(void* c) {
 
 	unsigned int versuche = 0;
 
-	while (cl->aktiv) {
-		if (SecureTCPKunde->Connect(cl->adr, cl->port)) {
+	SecureTCPKunde->Connect(cl->adr, cl->port);
+	SecureTCPKunde->SetRcvTimeout(200);
+	SecureTCPKunde->SetSndTimeout(200);
 
-			SecureTCPKunde->SetRcvTimeout(200);
-			SecureTCPKunde->SetSndTimeout(200);
+	while (cl->aktiv) {
+
+
 			versuche = 0;
 			while (cl->aktiv) {
-				char Buffer[1024] = {0};
-				int l = SecureTCPKunde->Receive(Buffer, 1023);
-				std::string s = std::string(Buffer).substr(0, l);
+				char Buffer[nachr_s] = {0};
+				int l = SecureTCPKunde->Receive(Buffer, nachr_s);
+
 				if (l > 0) {
-					cl->cbEingehend(cl, s);
+					cl->cbEingehend(cl, std::string(Buffer).substr(0, l));
 				}
 
+				std::shared_ptr<std::string> nachr;
+				if(cl->nachrA.hole(&nachr)){
+					std::string tmp = *nachr;
+					SecureTCPKunde->Send(tmp);
+				}
 			}
 			usleep(10000);
-		} else {
-			++versuche;
-			sleep(5);
 
-			if (versuche == 100)
-				cl->aktiv = false;
-		}
 	}
 
 	SecureTCPKunde->Disconnect();

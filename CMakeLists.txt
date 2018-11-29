@@ -5,10 +5,10 @@ set(CMAKE_CXX_STANDARD 11)
 add_definitions(-DOPENSSL)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../socket-cpp/Socket)
-link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../socket-cpp/build/lib)
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../socket-cpp/cmake-build-debug/lib/Debug)
 
-add_library(verteiler_lieferant lieferant/lieferant.cpp lieferant/lieferant.hpp allg/standardlogg.hpp allg/string_add.hpp)
-add_library(verteiler_kunde kunde/kunde.cpp kunde/kunde.hpp allg/standardlogg.hpp)
+add_library(verteiler_lieferant lieferant/lieferant.cpp lieferant/lieferant.hpp allg/standardlogg.hpp allg/string_add.hpp allg/ThreadFIFO.hpp)
+add_library(verteiler_kunde kunde/kunde.cpp kunde/kunde.hpp allg/standardlogg.hpp allg/ThreadFIFO.hpp)
 target_link_libraries(verteiler_lieferant socket pthread ssl crypto)
 target_link_libraries(verteiler_kunde socket pthread ssl crypto)
 

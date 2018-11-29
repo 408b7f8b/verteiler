@@ -12,6 +12,7 @@
 #include "TCPSSLServer.h"
 
 #include "../allg/standardlogg.hpp"
+#include "../allg/ThreadFIFO.hpp"
 
 #define nachr_s 300
 
@@ -29,11 +30,9 @@ namespace verteiler {
 		bool aktiv;
 
 		std::mutex mut;
-		std::string zusenden_thema;
-		std::string zusenden_nachricht;
 
-		std::vector<std::string> themen;
 		std::map<std::string, std::vector<ASecureSocket::SSLSocket*>> themaKunden;
+		std::map<std::string, std::unique_ptr<ThreadFIFO<std::string>>> themaNachrichten;
 		bool zusenden;
 
 		lieferant(std::string CertFile_, std::string KeyFile_, std::string Port_ = "8080");
@@ -47,6 +46,8 @@ namespace verteiler {
 		static void* Listen(void* s);
 
 		static bool Senden(lieferant* s, std::string thema, std::string nachricht);
+
+		static void ThemaAnlegen(verteiler::lieferant* s, std::string thema);
 	};
 
 }

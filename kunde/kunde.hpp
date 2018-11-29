@@ -10,6 +10,9 @@
 
 #include "TCPSSLClient.h"
 #include "../allg/standardlogg.hpp"
+#include "../allg/ThreadFIFO.hpp"
+
+#define nachr_s 300
 
 namespace verteiler {
 
@@ -21,6 +24,8 @@ namespace verteiler {
 		pthread_t thread;
 		bool aktiv;
 
+		ThreadFIFO<std::string> nachrA;
+
 		std::function<void(kunde*, std::string)> cbEingehend;
 
 		kunde(std::string adr_, std::string port_, std::function<void(kunde*, std::string)> cbEingehend_);
@@ -30,8 +35,12 @@ namespace verteiler {
 		static void* Betrieb(void* c);
 
 		static void Beenden(kunde* cl);
-	};
 
+		static void Anmelden(kunde* c, std::string thema);
+
+		static void Anmelden(kunde* c, std::vector<std::string> themen);
+
+	};
 }
 
 

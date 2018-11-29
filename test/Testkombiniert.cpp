@@ -20,18 +20,25 @@ int main(int argc, char **argv) {
 	sleep(1);
 
 	verteiler::kunde* cl = new verteiler::kunde("127.0.0.1", "8080", funktion);
-	cl->logg_aktiv = false;
+	cl->logg_aktiv = true;
 
 	verteiler::kunde::Start(cl);
 
-	sleep(1);
+	sleep(5);
 
 	for(int i = 0; i < 5; ++i){
+
+		verteiler::lieferant::ThemaAnlegen(s, "thema" + std::to_string(i));
+
 		sleep(1);
 
-		std::string str = "Hallo " + std::to_string(i);
+		verteiler::kunde::Anmelden(cl, "thema" + std::to_string(i));
 
-		verteiler::lieferant::Senden(s, "thema", "nachricht");
+		sleep(1);
+
+		verteiler::lieferant::Senden(s, "thema" + std::to_string(i), "nachricht");
+
+		sleep(1);
 	}
 
 	verteiler::kunde::Beenden(cl);

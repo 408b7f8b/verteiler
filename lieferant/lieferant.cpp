@@ -37,19 +37,17 @@ void lieferant::Beenden(lieferant* s) {
 }
 
 bool lieferant::Senden(verteiler::lieferant* s, std::string thema, std::string nachricht) {
-	bool ret = false;
-
-	s->mut.lock();
-	while (s->zusenden = true) {}
-	if (s->themaKunden.count(thema)) {
-		s->zusenden_thema = thema;
-		s->zusenden_nachricht = nachricht;
-		s->zusenden = true;
-		ret = true;
+	if (s->themaKunden.count(thema) && s->themaNachrichten.count(thema)) {
+		s->themaNachrichten.at(thema)->setze(nachricht);
+		return true;
 	}
-	s->mut.unlock();
 
-	return ret;
+	return false;
+}
+
+void lieferant::ThemaAnlegen(verteiler::lieferant* s, std::string thema){
+	s->themaKunden.insert({thema, {}});
+	s->themaNachrichten.insert( { thema, std::unique_ptr<ThreadFIFO<std::string>>(new ThreadFIFO<std::string>) } );
 }
 
 void* lieferant::Listen(void* s) {
@@ -73,9 +71,6 @@ void* lieferant::Listen(void* s) {
 
 	ASecureSocket::SSLSocket* letzterClient = new ASecureSocket::SSLSocket();
 
-	SecureTCPSSLServer->SetRcvTimeout(*letzterClient, 10);
-	SecureTCPSSLServer->SetSndTimeout(*letzterClient, 10);
-
 	while (lieferant->aktiv) {
 		if (SecureTCPSSLServer->Listen(*letzterClient, 1000)) {
 			clients.insert({i++, letzterClient});
@@ -84,23 +79,29 @@ void* lieferant::Listen(void* s) {
 			letzterClient = new ASecureSocket::SSLSocket();
 		}
 
-		lieferant->mut.lock();
-		if (lieferant->zusenden) {
-			for(auto& k : lieferant->themaKunden.at(lieferant->zusenden_thema)){
-				SecureTCPSSLServer->Send(*k, lieferant->zusenden_nachricht);
-			}
-			lieferant->zusenden = false;
-		}
-		lieferant->mut.unlock();
-
 		for(auto& c : clients){
 			char r[nachr_s] = {0};
 			int res = SecureTCPSSLServer->Receive(*c.second, &(r[0]), nachr_s);
-			if(res > 0){
-				std::string na = std::string(r);
-				if(na.substr(0, 3) == "ANM"){
-					std::string gek = na.substr(3);
-					std::vector<std::string> zerl = string_split(na, {'a', 'b'});
+			if(res > 0 && strlen(r) > 4){
+				std::string na = std::string(r).substr(0, res);
+				if(!na.compare(0, 4, "REG:")){
+					std::string gek = na.substr(4);
+					std::vector<std::string> zerl = string_split(gek, {0x7E});
+
+					for(auto& s : zerl){
+						if(lieferant->themaKunden.count(s)){
+							lieferant->themaKunden.at(s).push_back(c.second);
+						}
+					}
+				}
+			}
+		}
+
+		for(auto& t : lieferant->themaNachrichten){
+			std::shared_ptr<std::string> nachr;
+			if(t.second->hole(&nachr)){
+				for(auto& c : lieferant->themaKunden.at(t.first)) {
+					SecureTCPSSLServer->Send(*c, t.first + ":" + *nachr);
 				}
 			}
 		}
