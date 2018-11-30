@@ -6,18 +6,25 @@
 #define MSBDIREKTKOMM_CLIENT_HPP
 
 #include <string>
+#include <ctime>
 #include <pthread.h>
 
 #include "TCPSSLClient.h"
 #include "../allg/standardlogg.hpp"
 #include "../allg/ThreadFIFO.hpp"
+#include "../allg/string_add.hpp"
 
-#define nachr_s 300
+#define NACHR_S 300
+#define PP_INTERVALL 10.0
 
 namespace verteiler {
 
 	class kunde {
 	public:
+		enum Zustand {
+			NICHTVERBUNDEN, VERBINDE, VERBUNDEN
+		} aktZustand;
+
 		std::string adr, port;
 		bool logg_aktiv = true;
 
@@ -26,9 +33,9 @@ namespace verteiler {
 
 		ThreadFIFO<std::string> nachrA;
 
-		std::function<void(kunde*, std::string)> cbEingehend;
+		std::function<void(kunde*, std::string, std::string)> cbEingehend;
 
-		kunde(std::string adr_, std::string port_, std::function<void(kunde*, std::string)> cbEingehend_);
+		kunde(std::string adr_, std::string port_, std::function<void(kunde*, std::string, std::string)> cbEingehend_);
 
 		static void Start(kunde* c);
 

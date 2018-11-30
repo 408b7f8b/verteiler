@@ -6,8 +6,8 @@
 #include "../kunde/kunde.hpp"
 
 
-void funktion(verteiler::kunde* c, std::string kette){
-	std::cout << kette << std::endl;
+void funktion(verteiler::kunde* c, std::string thema, std::string inhalt){
+	std::cout << "Thema/Topic: " << thema << std::endl << "Inhalt: " << inhalt << std::endl;
 }
 
 int main(int argc, char **argv) {
@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
 	sleep(1);
 
 	verteiler::kunde* cl = new verteiler::kunde("127.0.0.1", "8080", funktion);
-	cl->logg_aktiv = true;
+	cl->logg_aktiv = false;
 
 	verteiler::kunde::Start(cl);
 

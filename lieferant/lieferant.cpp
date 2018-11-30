@@ -80,8 +80,8 @@ void* lieferant::Listen(void* s) {
 		}
 
 		for(auto& c : clients){
-			char r[nachr_s] = {0};
-			int res = SecureTCPSSLServer->Receive(*c.second, &(r[0]), nachr_s);
+			char r[NACHR_S] = {0};
+			int res = SecureTCPSSLServer->Receive(*c.second, &(r[0]), NACHR_S);
 			if(res > 0 && strlen(r) > 4){
 				std::string na = std::string(r).substr(0, res);
 				if(!na.compare(0, 4, "REG:")){
@@ -93,6 +93,10 @@ void* lieferant::Listen(void* s) {
 							lieferant->themaKunden.at(s).push_back(c.second);
 						}
 					}
+				}else if(na.compare(0, 4, "PING")){
+					if(!SecureTCPSSLServer->Send(*c.second, "PONG")){
+
+					}
 				}
 			}
 		}
@@ -101,7 +105,9 @@ void* lieferant::Listen(void* s) {
 			std::shared_ptr<std::string> nachr;
 			if(t.second->hole(&nachr)){
 				for(auto& c : lieferant->themaKunden.at(t.first)) {
-					SecureTCPSSLServer->Send(*c, t.first + ":" + *nachr);
+					if(!SecureTCPSSLServer->Send(*c, t.first + ":" + *nachr);){
+
+					}
 				}
 			}
 		}

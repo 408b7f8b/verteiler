@@ -14,7 +14,7 @@
 #include "../allg/standardlogg.hpp"
 #include "../allg/ThreadFIFO.hpp"
 
-#define nachr_s 300
+#define NACHR_S 300
 
 namespace verteiler {
 

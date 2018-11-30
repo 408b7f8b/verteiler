@@ -6,8 +6,8 @@
 #include "../allg/string_add.hpp"
 #include "../allg/ThreadFIFO.hpp"
 
-void funktion(verteiler::kunde* c, std::string kette){
-	std::cout << kette << std::endl;
+void funktion(verteiler::kunde* c, std::string thema, std::string inhalt){
+	std::cout << "Thema/Topic: " << thema << std::endl << "Inhalt: " << inhalt << std::endl;
 }
 
 int main(int argc, char **argv) {
