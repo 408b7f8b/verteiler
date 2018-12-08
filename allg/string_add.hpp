@@ -2,18 +2,21 @@
 // Created by root on 28.11.18.
 //
 
+#ifndef STRING_ADD_HPP
+#define STRING_ADD_HPP
+
 #include <string>
 #include <vector>
 
 template <typename T>
-static bool enthalten(T c, std::vector<T> satz){
+inline static bool enthalten(T c, std::vector<T> satz){
 	for(auto& i : satz)
 		if(i == c)
 			return true;
 	return false;
 }
 
-static std::vector<std::string> string_split(std::string str, std::vector<char> trenner){
+inline static std::vector<std::string> string_split(std::string str, std::vector<char> trenner){
 
 	if(str.empty())
 		return {};
@@ -42,3 +45,5 @@ static std::vector<std::string> string_split(std::string str, std::vector<char> 
 	return ret;
 
 }
+
+#endif
