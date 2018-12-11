@@ -2,6 +2,7 @@
 // Created by root on 23.11.18.
 //
 
+#include <csignal>
 #include "lieferant.hpp"
 #include "../allg/string_add.hpp"
 
@@ -24,6 +25,7 @@ void lieferant::Start(lieferant* s) {
 		return;
 
 	s->aktiv = true;
+
 	pthread_create(&(s->thread), NULL, lieferant::Listen, s);
 }
 
@@ -51,6 +53,13 @@ void lieferant::ThemaAnlegen(verteiler::lieferant* s, std::string thema){
 }
 
 void* lieferant::Listen(void* s) {
+	//signal(SIGPIPE,SIG_IGN);
+
+	sigset_t blockedSignal;
+	sigemptyset(&blockedSignal);
+	sigaddset(&blockedSignal, SIGPIPE);
+	pthread_sigmask(SIG_BLOCK, &blockedSignal, NULL);
+
 	lieferant* lieferant = (verteiler::lieferant*) s;
 
 	CTCPSSLServer* SecureTCPSSLServer;
@@ -71,6 +80,8 @@ void* lieferant::Listen(void* s) {
 
 	ASecureSocket::SSLSocket* letzterClient = new ASecureSocket::SSLSocket();
 
+	std::vector<int> wegdamit;
+
 	while (lieferant->aktiv) {
 		if (SecureTCPSSLServer->Listen(*letzterClient, 1000)) {
 			clients.insert({i++, letzterClient});
@@ -90,12 +101,12 @@ void* lieferant::Listen(void* s) {
 
 					for(auto& s : zerl){
 						if(lieferant->themaKunden.count(s)){
-							lieferant->themaKunden.at(s).push_back(c.second);
+							lieferant->themaKunden.at(s).push_back(c.first);
 						}
 					}
 				}else if(na.compare(0, 4, "PING")){
 					if(!SecureTCPSSLServer->Send(*c.second, "PONG")){
-
+						wegdamit.push_back(c.first);
 					}
 				}
 			}
@@ -105,11 +116,23 @@ void* lieferant::Listen(void* s) {
 			std::shared_ptr<std::string> nachr;
 			if(t.second->hole(&nachr)){
 				for(auto& c : lieferant->themaKunden.at(t.first)) {
-					if(!SecureTCPSSLServer->Send(*c, t.first + ":" + *nachr);){
-
+					if(!SecureTCPSSLServer->Send(*clients.at(c), t.first + ":" + *nachr)){
+						wegdamit.push_back(c);
 					}
 				}
 			}
+		}
+
+		for(std::vector<int>::iterator in = wegdamit.begin(); in != wegdamit.end() && wegdamit.size(); ++in){
+			clients.erase(*in);
+			for(auto& t : lieferant->themaKunden){
+				for(std::vector<int>::iterator it = t.second.begin(); it != t.second.end() && t.second.size(); ++it){
+					if(*it == *in){
+						t.second.erase(it);
+					}
+				}
+			}
+			wegdamit.erase(in);
 		}
 	}
 
@@ -123,4 +146,12 @@ void* lieferant::Listen(void* s) {
 	delete (SecureTCPSSLServer);
 
 	return NULL;
+}
+
+bool lieferant::KundenFuersThema(verteiler::lieferant* s, std::string thema){
+	if (s->themaKunden.count(thema)) {
+		return true;
+	}
+
+	return false;
 }

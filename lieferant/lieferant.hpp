@@ -31,7 +31,7 @@ namespace verteiler {
 
 		std::mutex mut;
 
-		std::map<std::string, std::vector<ASecureSocket::SSLSocket*>> themaKunden;
+		std::map<std::string, std::vector<int>> themaKunden;
 		std::map<std::string, std::unique_ptr<ThreadFIFO<std::string>>> themaNachrichten;
 		bool zusenden;
 
@@ -48,6 +48,8 @@ namespace verteiler {
 		static bool Senden(lieferant* s, std::string thema, std::string nachricht);
 
 		static void ThemaAnlegen(verteiler::lieferant* s, std::string thema);
+
+		static bool KundenFuersThema(verteiler::lieferant* s, std::string thema);
 	};
 
 }

@@ -3,6 +3,7 @@
 //
 
 #include "kunde.hpp"
+#include <csignal>
 
 using namespace verteiler;
 
@@ -35,14 +36,18 @@ void kunde::Anmelden(kunde* c, std::vector<std::string> themen) {
 }
 
 void* kunde::Betrieb(void* c) {
+	sigset_t blockedSignal;
+	sigemptyset(&blockedSignal);
+	sigaddset(&blockedSignal, SIGPIPE);
+	pthread_sigmask(SIG_BLOCK, &blockedSignal, NULL);
+
 	kunde* cl = (kunde*) c;
 
 	CTCPSSLClient* SecureTCPKunde;
 
 	cl->aktiv = true;
 
-	std::clock_t start;
-	double duration;
+	std::clock_t start, lKontakt;
 
 	while (cl->aktiv) {
 		switch(cl->aktZustand){
@@ -54,44 +59,68 @@ void* kunde::Betrieb(void* c) {
 													   ASocket::SettingsFlag::NO_FLAGS);
 				}
 
+				cl->versuche = 255;
 				cl->aktZustand = VERBINDE;
 
 				break;
 			}
 			case VERBINDE:{
-				SecureTCPKunde->Connect(cl->adr, cl->port); //timeout?
+				if(SecureTCPKunde->Connect(cl->adr, cl->port)){
+					cl->aktZustand = VERBUNDEN;
 
-				cl->aktZustand = VERBUNDEN;
+					SecureTCPKunde->SetRcvTimeout(cl->rcvSndTimeout);
+					SecureTCPKunde->SetSndTimeout(cl->rcvSndTimeout);
 
-				SecureTCPKunde->SetRcvTimeout(200);
-				SecureTCPKunde->SetSndTimeout(200);
-
-				start = std::clock();
+					start = std::clock();
+					lKontakt = start;
+				}else{
+					usleep(cl->versuche_dauer_us);
+					--(cl->versuche);
+				}
 
 				break;
 			}
 			case VERBUNDEN: {
+				std::clock_t jetzt = std::clock();
 
-				char Buffer[NACHR_S] = {0};
-				int l = SecureTCPKunde->Receive(Buffer, NACHR_S);
+				char Buffer[MAXZEICHEN] = {0};
 
-				std::string thema = string_split(std::string(Buffer).substr(0, l), {':'})[0];
-				std::string inhalt = std::string(Buffer).substr(thema.size() + 1);
+				int l = SecureTCPKunde->Receive(Buffer, MAXZEICHEN);
 
 				if (l > 0) {
-					cl->cbEingehend(cl, thema, inhalt);
+					std::vector<std::string> zerlegt = string_split(std::string(Buffer).substr(0, l), {':'});
+
+					if(zerlegt.size() > 1){
+						std::string thema = zerlegt[0];
+						std::string inhalt = zerlegt[1];
+
+						cl->cbEingehend(cl, thema, inhalt);
+					}else if(zerlegt.size() == 1){
+						if(zerlegt[0] == "PONG"){
+
+						}
+					}
+
+					lKontakt = jetzt;
+				}
+
+				if((jetzt - lKontakt) / (double) CLOCKS_PER_SEC > cl->TIMEOUT ) {
+					cl->versuche = 255;
+					cl->aktZustand = VERBINDE;
 				}
 
 				std::shared_ptr<std::string> nachr;
 				if (cl->nachrA.hole(&nachr)) {
 					std::string tmp = *nachr;
 					if(!SecureTCPKunde->Send(tmp)){
+						cl->versuche = 255;
 						cl->aktZustand = VERBINDE;
 					}
-					start = std::clock();
-				} else if ((std::clock() - start) / (double) CLOCKS_PER_SEC > PP_INTERVALL) {
+					start = jetzt;
+				} else if ((jetzt - start) / (double) CLOCKS_PER_SEC > cl->PP_INTERVALL) {
 					std::string tmp = "PING";
 					if(!SecureTCPKunde->Send(tmp)){
+						cl->versuche = 255;
 						cl->aktZustand = VERBINDE;
 					}
 				}
@@ -100,7 +129,7 @@ void* kunde::Betrieb(void* c) {
 			}
 		}
 
-		usleep(10000);
+		usleep(cl->intervall_automat);
 	}
 
 	SecureTCPKunde->Disconnect();

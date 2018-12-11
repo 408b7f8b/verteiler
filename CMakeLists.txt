@@ -18,9 +18,6 @@ target_link_libraries(Testclient verteiler_kunde)
 add_executable(Testserver test/Testserver.cpp)
 target_link_libraries(Testserver verteiler_lieferant)
 
-add_executable(Testkombiniert test/Testkombiniert.cpp)
-target_link_libraries(Testkombiniert verteiler_lieferant verteiler_kunde)
-
 #if(EXISTS key.pem)
 #else()
 #    add_custom_command(TARGET verteiler_lieferant

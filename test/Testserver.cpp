@@ -2,24 +2,28 @@
 // Created by root on 23.11.18.
 //
 
+#include <signal.h>
 #include "../lieferant/lieferant.hpp"
+
 
 int main(int argc, char **argv) {
 
-	verteiler::lieferant* s = new verteiler::lieferant("./cert.pem", "./key.pem", "8080");
-	s->Start(s);
+	std::unique_ptr<verteiler::lieferant> s(new verteiler::lieferant("./cert.pem", "./key.pem", "8080"));
+	s->Start(s.get());
 
-	std::vector<char> k = {1, 2, 3, 0};
+	verteiler::lieferant::ThemaAnlegen(s.get(), "thema");
 
-	for(int i = 0; i < 20; ++i){
+	for(int i = 0; i < 100; ++i){
+		if(verteiler::lieferant::KundenFuersThema(s.get(), "thema")){
+			verteiler::lieferant::Senden(s.get(), "thema", "nachricht");
+		}
+
 		sleep(1);
-
-		verteiler::lieferant::Senden(s, "thema", "nachricht");
 	}
 
-	s->Beenden(s);
+	s->Beenden(s.get());
 
-	delete(s);
+	delete(s.get());
 
 	return 0;
 }

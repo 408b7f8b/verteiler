@@ -16,6 +16,15 @@ int main(int argc, char **argv) {
 
 	verteiler::kunde::Start(cl);
 
+	for(int i = 0; i < 100; ++i){
+		if(cl->aktZustand == verteiler::kunde::VERBUNDEN){
+			verteiler::kunde::Anmelden(cl, "thema");
+			i == 9000;
+		}
+
+		sleep(1);
+	}
+
 	sleep(100);
 
 	verteiler::kunde::Beenden(cl);

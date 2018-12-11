@@ -14,19 +14,26 @@
 #include "../allg/ThreadFIFO.hpp"
 #include "../allg/string_add.hpp"
 
-#define NACHR_S 300
-#define PP_INTERVALL 10.0
+#define MAXZEICHEN 1024
+
 
 namespace verteiler {
 
 	class kunde {
+		std::string adr, port;
+		bool logg_aktiv = true;
+
 	public:
+		double PP_INTERVALL = 10.0;
+		double TIMEOUT = 60.0;
+		std::uint8_t versuche;
+		std::uint32_t versuche_dauer_us = 1000000;
+		std::uint16_t rcvSndTimeout = 200;
+		std::uint32_t intervall_automat = 10000;
+
 		enum Zustand {
 			NICHTVERBUNDEN, VERBINDE, VERBUNDEN
 		} aktZustand;
-
-		std::string adr, port;
-		bool logg_aktiv = true;
 
 		pthread_t thread;
 		bool aktiv;
