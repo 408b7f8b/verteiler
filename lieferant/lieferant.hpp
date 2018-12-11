@@ -24,7 +24,7 @@ namespace verteiler {
 		std::string KeyFile;
 		std::string Port;
 		ASecureSocket::LogFnCallback Logg = standardLogg;
-		bool logg_aktiv = true;
+		bool logg_aktiv = false;
 
 		pthread_t thread;
 		bool aktiv;

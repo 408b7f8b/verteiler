@@ -96,6 +96,8 @@ void* kunde::Betrieb(void* c) {
 
 						cl->cbEingehend(cl, thema, inhalt);
 					}else if(zerlegt.size() == 1){
+						cl->cbEingehend(cl, "", zerlegt[0]);
+
 						if(zerlegt[0] == "PONG"){
 
 						}

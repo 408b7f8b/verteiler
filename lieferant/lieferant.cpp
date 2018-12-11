@@ -114,26 +114,31 @@ void* lieferant::Listen(void* s) {
 
 		for(auto& t : lieferant->themaNachrichten){
 			std::shared_ptr<std::string> nachr;
-			if(t.second->hole(&nachr)){
+			if(t.second->hole(&nachr) && lieferant->themaKunden.count(t.first)){
 				for(auto& c : lieferant->themaKunden.at(t.first)) {
-					if(!SecureTCPSSLServer->Send(*clients.at(c), t.first + ":" + *nachr)){
-						wegdamit.push_back(c);
+					if(clients.count(c)){
+						if(!SecureTCPSSLServer->Send(*clients.at(c), t.first + ":" + *nachr)){
+							wegdamit.push_back(c);
+						}
 					}
 				}
 			}
 		}
 
-		for(std::vector<int>::iterator in = wegdamit.begin(); in != wegdamit.end() && wegdamit.size(); ++in){
-			clients.erase(*in);
-			for(auto& t : lieferant->themaKunden){
-				for(std::vector<int>::iterator it = t.second.begin(); it != t.second.end() && t.second.size(); ++it){
-					if(*it == *in){
-						t.second.erase(it);
+		if(wegdamit.size() > 0){
+			for(std::vector<int>::iterator in = wegdamit.end()-1; in >= wegdamit.begin(); --in){
+				clients.erase(*in);
+				for(auto& t : lieferant->themaKunden){
+					for(std::vector<int>::iterator it = t.second.end()-1; it >= t.second.begin(); --it){
+						if(*it == *in){
+							t.second.erase(it);
+						}
 					}
 				}
+				wegdamit.erase(in);
 			}
-			wegdamit.erase(in);
 		}
+
 	}
 
 	delete (letzterClient);
