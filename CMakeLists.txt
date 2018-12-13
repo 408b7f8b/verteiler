@@ -17,11 +17,3 @@ target_link_libraries(Testclient verteiler_receiver)
 
 add_executable(Testserver test/Testserver.cpp)
 target_link_libraries(Testserver verteiler_sender)
-
-#if(EXISTS key.pem)
-#else()
-#    add_custom_command(TARGET verteiler_lieferant
-#            POST_BUILD
-#            COMMAND /bin/sh ../certs.sh
-#            )
-#endif()

@@ -18,7 +18,6 @@ namespace Verteiler {
 		std::string port;
 
 		std::function<void(const std::string&)> logging_callback = standard_logging;
-		bool logging_active = false;
 
 		ThreadFIFO<std::string> msg_outgoing;
 		std::function<void(std::string, std::string, std::string)> callback_incoming_msg;
@@ -30,14 +29,16 @@ namespace Verteiler {
 		static void* thread_main(void* c);
 
 	public:
+
 		std::string identifier;
 
 		std::uint8_t pingpong_interval_sec = 10;
 		std::uint8_t conn_timeout_sec = 60;
-		std::uint8_t conn_try_number = 100;
 		std::uint32_t conn_try_interval_usec = 1000000;
 		std::uint16_t rcv_snd_timeout_msec = 200;
 		std::uint32_t automat_interval_usec = 10000;
+
+		bool logging_active = false;
 
 		enum state {
 			DISCONNECTED, CONNECTING, CONNECTED

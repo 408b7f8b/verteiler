@@ -76,7 +76,6 @@ void* Receiver::thread_main(void* c) {
 														ASocket::SettingsFlag::NO_FLAGS);
 				}
 
-				cl->conn_try_number = 255;
 				cl->currState = CONNECTING;
 
 				break;
@@ -88,13 +87,12 @@ void* Receiver::thread_main(void* c) {
 					SecureTcpClient->SetRcvTimeout(cl->rcv_snd_timeout_msec);
 					SecureTcpClient->SetSndTimeout(cl->rcv_snd_timeout_msec);
 
-					cl->RegisterToTopic(cl->topics);
+					//cl->RegisterToTopic(cl->topics);
 
 					start = std::clock();
 					last_contact = start;
 				} else {
 					usleep(cl->conn_try_interval_usec);
-					--(cl->conn_try_number);
 				}
 
 				break;
@@ -126,7 +124,6 @@ void* Receiver::thread_main(void* c) {
 				}
 
 				if ((now - last_contact) / (double) CLOCKS_PER_SEC > cl->conn_timeout_sec) {
-					cl->conn_try_number = 255;
 					cl->currState = CONNECTING;
 				}
 
@@ -134,14 +131,12 @@ void* Receiver::thread_main(void* c) {
 				if (cl->msg_outgoing.get(&msg)) {
 					std::string tmp = *msg;
 					if (!SecureTcpClient->Send(tmp)) {
-						cl->conn_try_number = 255;
 						cl->currState = CONNECTING;
 					}
 					start = now;
 				} else if ((now - start) / (double) CLOCKS_PER_SEC > cl->pingpong_interval_sec) {
 					std::string tmp = "PING";
 					if (!SecureTcpClient->Send(tmp)) {
-						cl->conn_try_number = 255;
 						cl->currState = CONNECTING;
 					}
 				}

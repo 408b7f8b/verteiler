@@ -20,7 +20,6 @@ namespace Verteiler {
 		std::string port;
 
 		std::function<void(const std::string&)> logging_callback = standard_logging;
-		bool logging_active = false;
 
 		std::map<std::string, std::vector<int>> topics_andtheirreceivers;
 		std::map<std::string, std::unique_ptr<ThreadFIFO<std::string>>> topics_andtheirmessages;
@@ -34,6 +33,8 @@ namespace Verteiler {
 
 		std::uint16_t listen_timeout_msec = 100;
 		std::uint16_t rcv_snd_timeout_msec = 10;
+
+		bool logging_active = false;
 
 		Sender(std::string certFile_, std::string keyFile_, std::string port_ = "8080");
 
