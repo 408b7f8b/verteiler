@@ -2,26 +2,27 @@
 #define VERTEILER_RECEIVER_HPP
 
 #include <string>
-#include <ctime>
+#include <functional>
+
 #include <pthread.h>
 
-#include "TCPSSLClient.h"
-#include "../Common/standardlogg.hpp"
-#include "../Common/ThreadFIFO.hpp"
-#include "../Common/string_add.hpp"
+#include "../Common/Common.hpp"
 
-#define MAX_NUMBER_CHAR 1024
+#define MAX_NUMBER_CHAR_RCV 1024
 
 namespace Verteiler {
 
 	class Receiver {
 
-		std::string address, port;
+		std::string address;
+		std::string port;
 
+		std::function<void(const std::string&)> logging_callback = standard_logging;
 		bool logging_active = false;
 
 		ThreadFIFO<std::string> msg_outgoing;
-		std::function<void(Receiver*, std::string, std::string)> callback_incoming_msg;
+		std::function<void(std::string, std::string, std::string)> callback_incoming_msg;
+		std::vector<std::string> topics;
 
 		pthread_t thread;
 		bool active;
@@ -29,8 +30,10 @@ namespace Verteiler {
 		static void* thread_main(void* c);
 
 	public:
+		std::string identifier;
+
 		std::uint8_t pingpong_interval_sec = 10;
-		std::uint8_t timeout_sec = 60;
+		std::uint8_t conn_timeout_sec = 60;
 		std::uint8_t conn_try_number = 100;
 		std::uint32_t conn_try_interval_usec = 1000000;
 		std::uint16_t rcv_snd_timeout_msec = 200;
@@ -40,13 +43,17 @@ namespace Verteiler {
 			DISCONNECTED, CONNECTING, CONNECTED
 		} currState;
 
-		Receiver(std::string address_, std::string port_, std::function<void(Receiver*, std::string, std::string)> callback_incoming_msg_);
+		Receiver(std::string address_, std::string port_,
+				 std::function<void(std::string, std::string, std::string)> callback_incoming_msg_,
+				 std::string identifier_ = "myreceiver");
 
 		void Run();
+
 		void Halt();
 
 		void RegisterToTopic(std::string topic);
-		void RegisterToTopic(std::vector<std::string> topics);
+
+		void RegisterToTopic(std::vector<std::string> topics_);
 
 	};
 }

@@ -1,10 +1,8 @@
-//
-// Created by root on 23.11.18.
-//
+#include "Sender.hpp"
 
 #include <csignal>
-#include "Sender.hpp"
-#include "../Common/string_add.hpp"
+
+#include "TCPSSLServer.h"
 
 using namespace Verteiler;
 
@@ -39,9 +37,9 @@ bool Sender::Send(std::string topic, std::string message) {
 	return false;
 }
 
-void Sender::CreateTopic(std::string topic){
+void Sender::CreateTopic(std::string topic) {
 	topics_andtheirreceivers.insert({topic, {}});
-	topics_andtheirmessages.insert( { topic, std::unique_ptr<ThreadFIFO<std::string>>(new ThreadFIFO<std::string>) } );
+	topics_andtheirmessages.insert({topic, std::unique_ptr<ThreadFIFO<std::string>>(new ThreadFIFO<std::string>)});
 }
 
 void* Sender::thread_main(void* s) {
@@ -58,7 +56,7 @@ void* Sender::thread_main(void* s) {
 		SecureTcpServer = new CTCPSSLServer(sender->logging_callback, sender->port);
 	} else {
 		SecureTcpServer = new CTCPSSLServer(sender->logging_callback, sender->port, ASecureSocket::OpenSSLProtocol::TLS,
-											   ASocket::SettingsFlag::NO_FLAGS);
+											ASocket::SettingsFlag::NO_FLAGS);
 	}
 
 	SecureTcpServer->SetSSLCertFile(sender->certFile);
@@ -80,34 +78,34 @@ void* Sender::thread_main(void* s) {
 			last_receiver = new ASecureSocket::SSLSocket();
 		}
 
-		for(auto& c : receivers){
-			char rcv_buffer[MAX_NUMBER_CHAR] = {0};
-			int received_bytes = SecureTcpServer->Receive(*c.second, &(rcv_buffer[0]), MAX_NUMBER_CHAR);
-			if(received_bytes > 0 && strlen(rcv_buffer) > 4){
+		for (auto& c : receivers) {
+			char rcv_buffer[MAX_NUMBER_CHAR_SND] = {0};
+			int received_bytes = SecureTcpServer->Receive(*c.second, &(rcv_buffer[0]), MAX_NUMBER_CHAR_SND);
+			if (received_bytes > 0 && strlen(rcv_buffer) > 4) {
 				std::string msg = std::string(rcv_buffer).substr(0, received_bytes);
-				if(!msg.compare(0, 4, "REG:")){
+				if (!msg.compare(0, 4, "REG:")) {
 					std::string shortened = msg.substr(4);
 					std::vector<std::string> split = string_split(shortened, {0x7E});
 
-					for(auto& s : split){
-						if(sender->topics_andtheirreceivers.count(s)){
+					for (auto& s : split) {
+						if (sender->topics_andtheirreceivers.count(s)) {
 							sender->topics_andtheirreceivers.at(s).push_back(c.first);
 						}
 					}
-				}else if(msg.compare(0, 4, "PING")){
-					if(!SecureTcpServer->Send(*c.second, "PONG")){
+				} else if (msg.compare(0, 4, "PING")) {
+					if (!SecureTcpServer->Send(*c.second, "PONG")) {
 						obsolete.push_back(c.first);
 					}
 				}
 			}
 		}
 
-		for(auto& t : sender->topics_andtheirmessages){
+		for (auto& t : sender->topics_andtheirmessages) {
 			std::shared_ptr<std::string> msg;
-			if(t.second->get(&msg) && sender->topics_andtheirreceivers.count(t.first)){
-				for(auto& c : sender->topics_andtheirreceivers.at(t.first)) {
-					if(receivers.count(c)){
-						if(!SecureTcpServer->Send(*receivers.at(c), t.first + ":" + *msg)){
+			if (t.second->get(&msg) && sender->topics_andtheirreceivers.count(t.first)) {
+				for (auto& c : sender->topics_andtheirreceivers.at(t.first)) {
+					if (receivers.count(c)) {
+						if (!SecureTcpServer->Send(*receivers.at(c), t.first + ":" + *msg)) {
 							obsolete.push_back(c);
 						}
 					}
@@ -115,12 +113,12 @@ void* Sender::thread_main(void* s) {
 			}
 		}
 
-		if(obsolete.size() > 0){
-			for(std::vector<int>::iterator in = obsolete.end()-1; in >= obsolete.begin(); --in){
+		if (obsolete.size() > 0) {
+			for (std::vector<int>::iterator in = obsolete.end() - 1; in >= obsolete.begin(); --in) {
 				receivers.erase(*in);
-				for(auto& t : sender->topics_andtheirreceivers){
-					for(std::vector<int>::iterator it = t.second.end()-1; it >= t.second.begin(); --it){
-						if(*it == *in){
+				for (auto& t : sender->topics_andtheirreceivers) {
+					for (std::vector<int>::iterator it = t.second.end() - 1; it >= t.second.begin(); --it) {
+						if (*it == *in) {
 							t.second.erase(it);
 						}
 					}
@@ -128,7 +126,6 @@ void* Sender::thread_main(void* s) {
 				obsolete.erase(in);
 			}
 		}
-
 	}
 
 	delete (last_receiver);
@@ -143,9 +140,9 @@ void* Sender::thread_main(void* s) {
 	return NULL;
 }
 
-bool Sender::HasTopicReceivers(std::string topic){
+bool Sender::HasTopicReceivers(std::string topic) {
 	if (topics_andtheirreceivers.count(topic)) {
-		if(!topics_andtheirreceivers[topic].empty()){
+		if (!topics_andtheirreceivers[topic].empty()) {
 			return true;
 		}
 	}

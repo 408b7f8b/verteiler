@@ -1,16 +1,15 @@
 #ifndef VERTEILER_SENDER_HPP
 #define VERTEILER_SENDER_HPP
 
+#include <functional>
 #include <string>
 #include <map>
+
 #include <pthread.h>
 
-#include "TCPSSLServer.h"
+#include "../Common/Common.hpp"
 
-#include "../Common/standardlogg.hpp"
-#include "../Common/ThreadFIFO.hpp"
-
-#define MAX_NUMBER_CHAR 1024
+#define MAX_NUMBER_CHAR_SND 1024
 
 namespace Verteiler {
 
@@ -20,7 +19,7 @@ namespace Verteiler {
 		std::string keyFile;
 		std::string port;
 
-		ASecureSocket::LogFnCallback logging_callback = standard_logging;
+		std::function<void(const std::string&)> logging_callback = standard_logging;
 		bool logging_active = false;
 
 		std::map<std::string, std::vector<int>> topics_andtheirreceivers;
@@ -37,12 +36,15 @@ namespace Verteiler {
 		std::uint16_t rcv_snd_timeout_msec = 10;
 
 		Sender(std::string certFile_, std::string keyFile_, std::string port_ = "8080");
+
 		~Sender();
 
 		void Start();
+
 		void Halt();
 
 		void CreateTopic(std::string topic);
+
 		bool HasTopicReceivers(std::string topic);
 
 		bool Send(std::string topic, std::string message);

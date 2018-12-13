@@ -7,16 +7,16 @@ add_definitions(-DOPENSSL)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../socket-cpp/Socket)
 link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../socket-cpp/cmake-build-debug/lib/Debug)
 
-add_library(verteiler_lieferant Sender/Sender.cpp Sender/Sender.hpp Common/standardlogg.hpp Common/string_add.hpp Common/ThreadFIFO.hpp)
-add_library(verteiler_kunde Receiver/Receiver.cpp Receiver/Receiver.hpp Common/standardlogg.hpp Common/ThreadFIFO.hpp)
-target_link_libraries(verteiler_lieferant socket pthread ssl crypto)
-target_link_libraries(verteiler_kunde socket pthread ssl crypto)
+add_library(verteiler_sender Sender/Sender.cpp Sender/Sender.hpp)
+add_library(verteiler_receiver Receiver/Receiver.cpp Receiver/Receiver.hpp)
+target_link_libraries(verteiler_sender socket pthread ssl crypto)
+target_link_libraries(verteiler_receiver socket pthread ssl crypto)
 
 add_executable(Testclient test/Testclient.cpp)
-target_link_libraries(Testclient verteiler_kunde)
+target_link_libraries(Testclient verteiler_receiver)
 
 add_executable(Testserver test/Testserver.cpp)
-target_link_libraries(Testserver verteiler_lieferant)
+target_link_libraries(Testserver verteiler_sender)
 
 #if(EXISTS key.pem)
 #else()
