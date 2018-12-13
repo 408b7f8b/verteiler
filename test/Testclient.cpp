@@ -1,25 +1,18 @@
-//
-// Created by root on 23.11.18.
-//
+#include "../Receiver/Receiver.hpp"
 
-#include "../kunde/kunde.hpp"
-#include "../allg/string_add.hpp"
-#include "../allg/ThreadFIFO.hpp"
-
-void funktion(verteiler::kunde* c, std::string thema, std::string inhalt){
+void funktion(Verteiler::Receiver* c, std::string thema, std::string inhalt){
 	std::cout << "Thema/Topic: " << thema << std::endl << "Inhalt: " << inhalt << std::endl;
 }
 
 int main(int argc, char **argv) {
 
-	verteiler::kunde* cl = new verteiler::kunde(std::string("127.0.0.1"), std::string("8080"), funktion);
+	Verteiler::Receiver* cl = new Verteiler::Receiver(std::string("127.0.0.1"), std::string("8080"), funktion);
 
-	verteiler::kunde::Start(cl);
+	cl->Run();
 
 	for(int i = 0; i < 100; ++i){
-		if(cl->aktZustand == verteiler::kunde::VERBUNDEN){
-			verteiler::kunde::Anmelden(cl, "thema");
-			i == 9000;
+		if(cl->currState == Verteiler::Receiver::CONNECTED){
+			cl->RegisterToTopic("thema");
 		}
 
 		sleep(1);
@@ -27,7 +20,7 @@ int main(int argc, char **argv) {
 
 	sleep(100);
 
-	verteiler::kunde::Beenden(cl);
+	cl->Halt();
 
 	return 0;
 }

@@ -1,29 +1,25 @@
-//
-// Created by root on 23.11.18.
-//
-
-#include <signal.h>
-#include "../lieferant/lieferant.hpp"
+#include "../Sender/Sender.hpp"
 
 
 int main(int argc, char **argv) {
 
-	std::unique_ptr<verteiler::lieferant> s(new verteiler::lieferant("./cert.pem", "./key.pem", "8080"));
-	s->Start(s.get());
+	std::unique_ptr<Verteiler::Sender> s(new Verteiler::Sender("./cert.pem", "./key.pem", "8080"));
+	s->Start();
 
-	verteiler::lieferant::ThemaAnlegen(s.get(), "thema");
+	s->CreateTopic("thema");
 
 	for(int i = 0; i < 100; ++i){
-		if(verteiler::lieferant::KundenFuersThema(s.get(), "thema")){
-			verteiler::lieferant::Senden(s.get(), "thema", "nachricht");
+		if(s->HasTopicReceivers("thema")){
+			s->Send("thema", "nachricht");
 		}
 
 		sleep(1);
 	}
 
-	s->Beenden(s.get());
+	s->Halt();
 
 	delete(s.get());
 
 	return 0;
+
 }

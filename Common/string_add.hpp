@@ -1,7 +1,3 @@
-//
-// Created by root on 28.11.18.
-//
-
 #ifndef STRING_ADD_HPP
 #define STRING_ADD_HPP
 
@@ -9,14 +5,14 @@
 #include <vector>
 
 template <typename T>
-inline static bool enthalten(T c, std::vector<T> satz){
-	for(auto& i : satz)
+inline static bool vector_has(T c, std::vector<T> set){
+	for(auto& i : set)
 		if(i == c)
 			return true;
 	return false;
 }
 
-inline static std::vector<std::string> string_split(std::string str, std::vector<char> trenner){
+inline static std::vector<std::string> string_split(std::string str, std::vector<char> splitter){
 
 	if(str.empty())
 		return {};
@@ -29,7 +25,7 @@ inline static std::vector<std::string> string_split(std::string str, std::vector
 	std::vector<std::string> ret;
 
 	for(i = 0; i < str.length(); ++i){
-		if(!enthalten<char>(str.at(i), trenner)){
+		if(!vector_has<char>(str.at(i), splitter)){
 			flag = true;
 			tmp += str.at(i);
 		}else if(flag){

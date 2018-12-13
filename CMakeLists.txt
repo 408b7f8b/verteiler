@@ -7,8 +7,8 @@ add_definitions(-DOPENSSL)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../socket-cpp/Socket)
 link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../socket-cpp/cmake-build-debug/lib/Debug)
 
-add_library(verteiler_lieferant lieferant/lieferant.cpp lieferant/lieferant.hpp allg/standardlogg.hpp allg/string_add.hpp allg/ThreadFIFO.hpp)
-add_library(verteiler_kunde kunde/kunde.cpp kunde/kunde.hpp allg/standardlogg.hpp allg/ThreadFIFO.hpp)
+add_library(verteiler_lieferant Sender/Sender.cpp Sender/Sender.hpp Common/standardlogg.hpp Common/string_add.hpp Common/ThreadFIFO.hpp)
+add_library(verteiler_kunde Receiver/Receiver.cpp Receiver/Receiver.hpp Common/standardlogg.hpp Common/ThreadFIFO.hpp)
 target_link_libraries(verteiler_lieferant socket pthread ssl crypto)
 target_link_libraries(verteiler_kunde socket pthread ssl crypto)
 

@@ -1,7 +1,3 @@
-//
-// Created by root on 29.11.18.
-//
-
 #ifndef VERTEILER_THREADFIFO_HPP
 #define VERTEILER_THREADFIFO_HPP
 
@@ -9,20 +5,16 @@
 #include <mutex>
 #include <memory>
 
-// A threadsafe-queue.
 template <class T>
 class ThreadFIFO
 {
+
+	std::queue<std::shared_ptr<T>> q;
+	mutable std::mutex m;
+
 public:
-	ThreadFIFO(void)
-			: q()
-			, m()
-	{}
 
-	~ThreadFIFO(void)
-	{}
-
-	bool hole(std::shared_ptr<T>* zgr){
+	bool get(std::shared_ptr<T>* zgr){
 		std::unique_lock<std::mutex> lock(m);
 		if(q.empty())
 			return false;
@@ -33,14 +25,11 @@ public:
 		return true;
 	}
 
-	void setze(T t){
+	void put(T t){
 		std::lock_guard<std::mutex> lock(m);
 		q.push(std::make_shared<T>(t));
 	}
 
-private:
-	std::queue<std::shared_ptr<T>> q;
-	mutable std::mutex m;
 };
 
 
