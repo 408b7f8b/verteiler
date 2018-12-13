@@ -4,7 +4,7 @@
 
 #include <csignal>
 #include "Sender.hpp"
-#include "../allg/string_add.hpp"
+#include "../Common/string_add.hpp"
 
 using namespace Verteiler;
 
