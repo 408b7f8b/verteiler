@@ -37,14 +37,14 @@ public:
 //--------------------------------------------------------
 
 template<typename T>
-inline static bool vector_has(T c, std::vector<T> set) {
+inline static bool vector_has(T c, const std::vector<T>& set) {
 	for (auto& i : set)
 		if (i == c)
 			return true;
 	return false;
 }
 
-inline static std::vector<std::string> string_split(std::string str, std::vector<char> splitter) {
+inline static std::vector<std::string> string_split(const std::string& str, const std::vector<char>& splitter) {
 
 	if (str.empty())
 		return {};

@@ -3,7 +3,7 @@
 #include <iostream>
 #include <unistd.h>
 
-void funktion(std::string receiver, std::string thema, std::string inhalt) {
+void funktion(const std::string& receiver, const std::string& thema, const std::string& inhalt) {
 	std::cout << "Receiver " << receiver  << ", Thema/Topic: " << thema << std::endl << "Inhalt: " << inhalt << std::endl;
 }
 

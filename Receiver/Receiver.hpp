@@ -20,7 +20,7 @@ namespace Verteiler {
 		std::function<void(const std::string&)> logging_callback = standard_logging;
 
 		ThreadFIFO<std::string> msg_outgoing;
-		std::function<void(std::string, std::string, std::string)> callback_incoming_msg;
+		std::function<void(const std::string&, const std::string&, const std::string&)> callback_incoming_msg;
 		std::vector<std::string> topics;
 
 		pthread_t thread;
@@ -44,17 +44,17 @@ namespace Verteiler {
 			DISCONNECTED, CONNECTING, CONNECTED
 		} currState;
 
-		Receiver(std::string address_, std::string port_,
-				 std::function<void(std::string, std::string, std::string)> callback_incoming_msg_,
-				 std::string identifier_ = "myreceiver");
+		Receiver(const std::string& address_, const std::string& port_,
+				 std::function<void(const std::string&, const std::string&, const std::string&)> callback_incoming_msg_,
+				 const std::string& identifier_ = "myreceiver");
 
 		void Run();
 
 		void Halt();
 
-		void RegisterToTopic(std::string topic);
+		void RegisterToTopic(const std::string& topic);
 
-		void RegisterToTopic(std::vector<std::string> topics_);
+		void RegisterToTopic(const std::vector<std::string>& topics_);
 
 	};
 }

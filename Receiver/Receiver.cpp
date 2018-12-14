@@ -7,9 +7,9 @@
 
 using namespace Verteiler;
 
-Receiver::Receiver(std::string address_, std::string port_,
-				   std::function<void(std::string, std::string, std::string)> callback_incoming_msg_,
-				   std::string identifier_) {
+Receiver::Receiver(const std::string& address_, const std::string& port_,
+				   std::function<void(const std::string&, const std::string&, const std::string&)> callback_incoming_msg_,
+				   const std::string& identifier_) {
 	address = address_;
 	port = port_;
 	callback_incoming_msg = callback_incoming_msg_;
@@ -21,7 +21,7 @@ void Receiver::Run() {
 	pthread_create(&(this->thread), NULL, Receiver::thread_main, this);
 }
 
-void Receiver::RegisterToTopic(std::string topic) {
+void Receiver::RegisterToTopic(const std::string& topic) {
 	if(topic.empty())
 		return;
 
@@ -34,7 +34,7 @@ void Receiver::RegisterToTopic(std::string topic) {
 	}
 }
 
-void Receiver::RegisterToTopic(std::vector<std::string> topics_) {
+void Receiver::RegisterToTopic(const std::vector<std::string>& topics_) {
 	if(topics_.empty())
 		return;
 
@@ -87,7 +87,7 @@ void* Receiver::thread_main(void* c) {
 					SecureTcpClient->SetRcvTimeout(cl->rcv_snd_timeout_msec);
 					SecureTcpClient->SetSndTimeout(cl->rcv_snd_timeout_msec);
 
-					//cl->RegisterToTopic(cl->topics);
+					cl->RegisterToTopic(cl->topics);
 
 					start = std::clock();
 					last_contact = start;

@@ -6,7 +6,7 @@
 
 using namespace Verteiler;
 
-Sender::Sender(std::string certFile_, std::string keyFile_, std::string port_) {
+Sender::Sender(const std::string& certFile_, const std::string& keyFile_, const std::string& port_) {
 	certFile = certFile_;
 	keyFile = keyFile_;
 	port = port_;
@@ -28,7 +28,7 @@ void Sender::Halt() {
 	pthread_join(this->thread, NULL);
 }
 
-bool Sender::Send(std::string topic, std::string message) {
+bool Sender::Send(const std::string& topic, const std::string& message) {
 	if (this->topics_andtheirreceivers.count(topic) && this->topics_andtheirmessages.count(topic)) {
 		this->topics_andtheirmessages.at(topic)->put(message);
 		return true;
@@ -37,7 +37,7 @@ bool Sender::Send(std::string topic, std::string message) {
 	return false;
 }
 
-void Sender::CreateTopic(std::string topic) {
+void Sender::CreateTopic(const std::string& topic) {
 	topics_andtheirreceivers.insert({topic, {}});
 	topics_andtheirmessages.insert({topic, std::unique_ptr<ThreadFIFO<std::string>>(new ThreadFIFO<std::string>)});
 }
@@ -140,7 +140,7 @@ void* Sender::thread_main(void* s) {
 	return NULL;
 }
 
-bool Sender::HasTopicReceivers(std::string topic) {
+bool Sender::HasTopicReceivers(const std::string& topic) {
 	if (topics_andtheirreceivers.count(topic)) {
 		if (!topics_andtheirreceivers[topic].empty()) {
 			return true;

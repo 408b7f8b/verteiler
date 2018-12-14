@@ -36,7 +36,7 @@ namespace Verteiler {
 
 		bool logging_active = false;
 
-		Sender(std::string certFile_, std::string keyFile_, std::string port_ = "8080");
+		Sender(const std::string& certFile_, const std::string& keyFile_, const std::string& port_ = "8080");
 
 		~Sender();
 
@@ -44,11 +44,11 @@ namespace Verteiler {
 
 		void Halt();
 
-		void CreateTopic(std::string topic);
+		void CreateTopic(const std::string& topic);
 
-		bool HasTopicReceivers(std::string topic);
+		bool HasTopicReceivers(const std::string& topic);
 
-		bool Send(std::string topic, std::string message);
+		bool Send(const std::string& topic, const std::string& message);
 
 	};
 
