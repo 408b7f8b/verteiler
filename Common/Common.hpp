@@ -49,7 +49,7 @@ inline static std::vector<std::string> string_split(const std::string& str, cons
 	if (str.empty())
 		return {};
 
-	int i;
+	unsigned long i;
 	bool flag;
 
 	flag = false;

@@ -56,6 +56,10 @@ namespace Verteiler {
 
 		void RegisterToTopic(const std::vector<std::string>& topics_);
 
+		void UnregisterFromTopic(const std::string& topic);
+
+		void UnregisterFromTopic(const std::vector<std::string>& topics_);
+
 	};
 }
 

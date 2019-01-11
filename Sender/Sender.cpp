@@ -20,12 +20,12 @@ Sender::~Sender() {
 
 void Sender::Start() {
 	this->active = true;
-	pthread_create(&(this->thread), NULL, Sender::thread_main, this);
+	pthread_create(&(this->thread), nullptr, Sender::thread_main, this);
 }
 
 void Sender::Halt() {
 	this->active = false;
-	pthread_join(this->thread, NULL);
+	pthread_join(this->thread, nullptr);
 }
 
 bool Sender::Send(const std::string& topic, const std::string& message) {
@@ -46,7 +46,7 @@ void* Sender::thread_main(void* s) {
 	sigset_t blockedSignal;
 	sigemptyset(&blockedSignal);
 	sigaddset(&blockedSignal, SIGPIPE);
-	pthread_sigmask(SIG_BLOCK, &blockedSignal, NULL);
+	pthread_sigmask(SIG_BLOCK, &blockedSignal, nullptr);
 
 	auto sender = (Verteiler::Sender*) s;
 
@@ -80,16 +80,16 @@ void* Sender::thread_main(void* s) {
 
 		for (auto& c : receivers) {
 			char rcv_buffer[MAX_NUMBER_CHAR_SND] = {0};
-			int received_bytes = SecureTcpServer->Receive(*c.second, &(rcv_buffer[0]), MAX_NUMBER_CHAR_SND);
+			auto received_bytes = (unsigned long)SecureTcpServer->Receive(*c.second, &(rcv_buffer[0]), MAX_NUMBER_CHAR_SND);
 			if (received_bytes > 0 && strlen(rcv_buffer) > 4) {
 				std::string msg = std::string(rcv_buffer).substr(0, received_bytes);
 				if (!msg.compare(0, 4, "REG:")) {
 					std::string shortened = msg.substr(4);
 					std::vector<std::string> split = string_split(shortened, {0x7E});
 
-					for (auto& s : split) {
-						if (sender->topics_andtheirreceivers.count(s)) {
-							sender->topics_andtheirreceivers.at(s).push_back(c.first);
+					for (auto& sp : split) {
+						if (sender->topics_andtheirreceivers.count(sp)) {
+							sender->topics_andtheirreceivers.at(sp).push_back(c.first);
 						}
 					}
 				} else if (msg.compare(0, 4, "PING")) {
@@ -113,11 +113,11 @@ void* Sender::thread_main(void* s) {
 			}
 		}
 
-		if (obsolete.size() > 0) {
-			for (std::vector<int>::iterator in = obsolete.end() - 1; in >= obsolete.begin(); --in) {
+		if (!obsolete.empty()) {
+			for (auto in = obsolete.end() - 1; in >= obsolete.begin(); --in) {
 				receivers.erase(*in);
 				for (auto& t : sender->topics_andtheirreceivers) {
-					for (std::vector<int>::iterator it = t.second.end() - 1; it >= t.second.begin(); --it) {
+					for (auto it = t.second.end() - 1; it >= t.second.begin(); --it) {
 						if (*it == *in) {
 							t.second.erase(it);
 						}
@@ -130,14 +130,14 @@ void* Sender::thread_main(void* s) {
 
 	delete (last_receiver);
 
-	for (auto& i : receivers) {
-		SecureTcpServer->Disconnect(*i.second);
-		delete (i.second);
+	for (auto& r : receivers) {
+		SecureTcpServer->Disconnect(*r.second);
+		delete (r.second);
 	}
 
 	delete (SecureTcpServer);
 
-	return NULL;
+	return nullptr;
 }
 
 bool Sender::HasTopicReceivers(const std::string& topic) {

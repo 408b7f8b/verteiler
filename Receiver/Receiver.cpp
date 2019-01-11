@@ -18,19 +18,19 @@ Receiver::Receiver(const std::string& address_, const std::string& port_,
 }
 
 void Receiver::Run() {
-	pthread_create(&(this->thread), NULL, Receiver::thread_main, this);
+	pthread_create(&(this->thread), nullptr, Receiver::thread_main, this);
 }
 
 void Receiver::RegisterToTopic(const std::string& topic) {
 	if(topic.empty())
 		return;
 
-	if(currState == CONNECTED){
-		this->msg_outgoing.put("REG:" + topic);
-	}
-
 	if(!vector_has<std::string>(topic, this->topics)){
 		this->topics.push_back(topic);
+	}
+
+	if(currState == CONNECTED){
+		this->msg_outgoing.put("REG:" + topic);
 	}
 }
 
@@ -52,19 +52,54 @@ void Receiver::RegisterToTopic(const std::vector<std::string>& topics_) {
 	}
 }
 
+void Receiver::UnregisterFromTopic(const std::string& topic) {
+	if(topic.empty())
+		return;
+
+	for (auto it = this->topics.end() - 1; it >= this->topics.begin(); --it) {
+		if (*it == topic) {
+			this->topics.erase(it);
+		}
+	}
+
+	if(currState == CONNECTED){
+		this->msg_outgoing.put("UNREG:" + topic);
+	}
+}
+
+void Receiver::UnregisterFromTopic(const std::vector<std::string>& topics_) {
+	if(topics_.empty())
+		return;
+
+	std::string agr;
+
+	for (auto& s : topics_) {
+		for (auto it = this->topics.end() - 1; it >= this->topics.begin(); --it) {
+			if (*it == s) {
+				this->topics.erase(it);
+				agr += s + ";";
+			}
+		}
+	}
+
+	if(currState == CONNECTED){
+		this->msg_outgoing.put("UNREG:" + agr);
+	}
+}
+
 void* Receiver::thread_main(void* c) {
 	sigset_t blockedSignal;
 	sigemptyset(&blockedSignal);
 	sigaddset(&blockedSignal, SIGPIPE);
-	pthread_sigmask(SIG_BLOCK, &blockedSignal, NULL);
+	pthread_sigmask(SIG_BLOCK, &blockedSignal, nullptr);
 
-	Receiver* cl = (Receiver*) c;
+	auto cl = (Receiver*) c;
 
-	CTCPSSLClient* SecureTcpClient;
+	CTCPSSLClient* SecureTcpClient = nullptr;
 
 	cl->active = true;
 
-	std::clock_t start, last_contact;
+	std::clock_t start(0), last_contact(0);
 
 	while (cl->active) {
 		switch (cl->currState) {
@@ -148,13 +183,15 @@ void* Receiver::thread_main(void* c) {
 		usleep(cl->automat_interval_usec);
 	}
 
-	SecureTcpClient->Disconnect();
-	delete (SecureTcpClient);
+	if(SecureTcpClient != nullptr) {
+		SecureTcpClient->Disconnect();
+		delete (SecureTcpClient);
+	}
 
-	return NULL;
+	return nullptr;
 }
 
 void Receiver::Halt() {
 	this->active = false;
-	pthread_join(this->thread, NULL);
+	pthread_join(this->thread, nullptr);
 }
