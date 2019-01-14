@@ -9,10 +9,12 @@ using namespace Verteiler;
 
 Receiver::Receiver(const std::string& address_, const std::string& port_,
 				   std::function<void(const std::string&, const std::string&, const std::string&)> callback_incoming_msg_,
-				   const std::string& identifier_) {
+				   const std::string& identifier_,
+				   std::function<void(const std::string&, const std::string&)> callback_notification_) {
 	address = address_;
 	port = port_;
 	callback_incoming_msg = callback_incoming_msg_;
+	callback_notification = callback_notification_;
 	currState = DISCONNECTED;
 	identifier = identifier_;
 }
@@ -85,6 +87,10 @@ void Receiver::UnregisterFromTopic(const std::vector<std::string>& topics_) {
 	if(currState == CONNECTED){
 		this->msg_outgoing.put("UNREG:" + agr);
 	}
+}
+
+bool Receiver::IsConnectionOK(){
+	return currState == CONNECTED;
 }
 
 void* Receiver::thread_main(void* c) {
@@ -160,6 +166,9 @@ void* Receiver::thread_main(void* c) {
 
 				if ((now - last_contact) / (double) CLOCKS_PER_SEC > cl->conn_timeout_sec) {
 					cl->currState = CONNECTING;
+					if(!cl->callback_notification){
+						cl->callback_notification(cl->identifier, "TIMEOUT");
+					}
 				}
 
 				std::shared_ptr<std::string> msg;
@@ -167,12 +176,14 @@ void* Receiver::thread_main(void* c) {
 					std::string tmp = *msg;
 					if (!SecureTcpClient->Send(tmp)) {
 						cl->currState = CONNECTING;
+						cl->callback_notification(cl->identifier, "SEND FAIL");
 					}
 					start = now;
 				} else if ((now - start) / (double) CLOCKS_PER_SEC > cl->pingpong_interval_sec) {
 					std::string tmp = "PING";
 					if (!SecureTcpClient->Send(tmp)) {
 						cl->currState = CONNECTING;
+						cl->callback_notification(cl->identifier, "SEND FAIL");
 					}
 				}
 

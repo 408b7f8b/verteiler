@@ -21,6 +21,7 @@ namespace Verteiler {
 
 		ThreadFIFO<std::string> msg_outgoing;
 		std::function<void(const std::string&, const std::string&, const std::string&)> callback_incoming_msg;
+		std::function<void(const std::string&, const std::string&)> callback_notification;
 		std::vector<std::string> topics;
 
 		pthread_t thread;
@@ -46,7 +47,8 @@ namespace Verteiler {
 
 		Receiver(const std::string& address_, const std::string& port_,
 				 std::function<void(const std::string&, const std::string&, const std::string&)> callback_incoming_msg_,
-				 const std::string& identifier_ = "myreceiver");
+				 const std::string& identifier_ = "myreceiver",
+				 std::function<void(const std::string&, const std::string&)> callback_notification_ = {});
 
 		void Run();
 
@@ -59,6 +61,8 @@ namespace Verteiler {
 		void UnregisterFromTopic(const std::string& topic);
 
 		void UnregisterFromTopic(const std::vector<std::string>& topics_);
+
+		bool IsConnectionOK();
 
 	};
 }
